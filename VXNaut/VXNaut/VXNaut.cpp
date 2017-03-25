@@ -23,7 +23,9 @@ IMenuOption* HarassE;
 IMenuOption* HarassPercent;
 
 IMenu* MiscMenu;
+IMenu* AutoQSettings;
 std::map<int, IMenuOption*> AutoQ;
+IMenuOption* AutoW;
 
 IMenu* UltSettings;
 std::map<int, IMenuOption*> UseUltOn;
@@ -51,25 +53,10 @@ void InitializeMenu()
 
 	ComboSettings = MainMenu->AddMenu("Combo Settings");
 	{
-		QSettings = ComboSettings->AddMenu("Q Settings");
-		{
-			ComboQ = QSettings->CheckBox("Use Q in combo", true);
-		}
-
-		WSettings = ComboSettings->AddMenu("W Settings");
-		{
-			ComboW = WSettings->CheckBox("Use W in combo", true);
-		}
-
-		ESettings = ComboSettings->AddMenu("E Settings");
-		{
-			ComboE = ESettings->CheckBox("Use E in combo", true);
-		}
-
-		RSettings = ComboSettings->AddMenu("R Settings");
-		{
-			ComboR = RSettings->CheckBox("Use R in combo", true);
-		}
+		ComboQ = ComboSettings->CheckBox("Use Q in combo", true);
+		ComboW = ComboSettings->CheckBox("Use W in combo", true);
+		ComboE = ComboSettings->CheckBox("Use E in combo", true);
+		ComboR = ComboSettings->CheckBox("Use R in combo", true);
 	}
 
 	HarassSettings = MainMenu->AddMenu("Harass Settings");
@@ -81,28 +68,30 @@ void InitializeMenu()
 
 	UltSettings = MainMenu->AddMenu("Ultimate Settings");
 	{
-		for (auto Enemies : GEntityList->GetAllHeros(false, true))
-		{
-			if (Enemies != nullptr)
-			{
-				std::string name = "Ult: " + std::string(Enemies->ChampionName());
-				UseUltOn[Enemies->GetNetworkId()] = UltSettings->CheckBox(name.c_str(), true);
-			}
-		}
+	for (auto Enemies : GEntityList->GetAllHeros(false, true))
+	{
+	if (Enemies != nullptr)
+	{
+		std::string name = "Ult: " + std::string(Enemies->ChampionName());
+		UseUltOn[Enemies->GetNetworkId()] = UltSettings->CheckBox(name.c_str(), true);
+	}
+	}
 	}
 
 	MiscMenu = MainMenu->AddMenu("Misc Settings");
 	{
+		AutoQSettings = MiscMenu->AddMenu("Auto Q Settings");
 		for (auto Enemies : GEntityList->GetAllHeros(false, true))
 		{
 			if (Enemies != nullptr)
 			{
 				std::string name = "Auto Q: " + std::string(Enemies->ChampionName());
-				AutoQ[Enemies->GetNetworkId()] = MiscMenu->CheckBox(name.c_str(), true);
+				AutoQ[Enemies->GetNetworkId()] = AutoQSettings->CheckBox(name.c_str(), true);
 			}
 		}
-		//auto w (shield)
+		AutoW = MiscMenu->CheckBox("Auto W If Enemy In Range", false);
 		//auto interrupt? Q
+		//auto Q?
 	}
 }
 
@@ -110,7 +99,7 @@ void LoadSpells()
 {
 	Q = GPluginSDK->CreateSpell2(kSlotQ, kLineCast, true, false, static_cast<eCollisionFlags>(kCollidesWithYasuoWall, kCollidesWithMinions, kCollidesWithWalls));
 	Q->SetSkillshot(0.25f, 250, 2000, 60);
-	
+
 	W = GPluginSDK->CreateSpell2(kSlotW, kTargetCast, false, false, kCollidesWithNothing);
 	E = GPluginSDK->CreateSpell2(kSlotE, kTargetCast, false, true, kCollidesWithNothing);
 	R = GPluginSDK->CreateSpell2(kSlotR, kTargetCast, false, true, kCollidesWithYasuoWall);
@@ -147,7 +136,7 @@ void Combo()
 			}
 		}
 
-		if (ComboW->Enabled && E->IsReady())
+		if (ComboW->Enabled() && E->IsReady())
 		{
 			if (Enemy != nullptr && (Enemy->GetPosition() - GEntityList->Player()->GetPosition()).Length() < 175)
 			{
@@ -172,6 +161,22 @@ void Combo()
 			{
 				R->CastOnTarget(Enemy);
 			}
+		}
+	}
+}
+
+void Harrass()
+{
+
+}
+
+void AutoWInRange()
+{
+	for (auto Enemy : GEntityList->GetAllHeros(false, true))
+	{
+		if (AutoW->Enabled() && W->IsReady() && (Enemy->GetPosition() - GEntityList->Player()->GetPosition()).Length() < 150)
+		{
+			W->CastOnPlayer();
 		}
 	}
 }
