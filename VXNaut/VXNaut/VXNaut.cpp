@@ -222,12 +222,17 @@ PLUGIN_EVENT(void) OnInterruptible(InterruptibleSpell const& Args)
 	}
 }
 
+PLUGIN_EVENT(void) OnRender()
+{
+}
+
 PLUGIN_EVENT(void) OnGameUpdate()
 {
 	if (GEntityList->Player()->IsDead())
 		return;
 
 	AutoWInRange();
+	AutoHook();
 
 	switch (GOrbwalking->GetOrbwalkingMode())
 	{
