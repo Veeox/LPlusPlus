@@ -26,6 +26,7 @@ IMenu* MiscMenu;
 IMenu* AutoQSettings;
 std::map<int, IMenuOption*> AutoQ;
 IMenuOption* AutoW;
+IMenuOption* AutoInt;
 
 IMenu* UltSettings;
 std::map<int, IMenuOption*> UseUltOn;
@@ -90,7 +91,7 @@ void InitializeMenu()
 			}
 		}
 		AutoW = MiscMenu->CheckBox("Auto W If Enemy In Range", false);
-		//auto interrupt? Q
+		AutoInt = MiscMenu->CheckBox("Auto Q To Interrupt", false);
 		//auto Q?
 	}
 }
@@ -136,7 +137,7 @@ void Combo()
 			}
 		}
 
-		if (ComboW->Enabled() && E->IsReady())
+		if (ComboW->Enabled() && W->IsReady())
 		{
 			if (Enemy != nullptr && (Enemy->GetPosition() - GEntityList->Player()->GetPosition()).Length() < 175)
 			{
@@ -148,10 +149,7 @@ void Combo()
 		{
 			if (Enemy != nullptr && (Enemy->GetPosition() - GEntityList->Player()->GetPosition()).Length() < 600)
 			{
-				if (E->CastOnPlayer())
-				{
-					GOrbwalking->SetOverrideTarget(Enemy);
-				}
+				E->CastOnPlayer();
 			}
 		}
 
@@ -165,18 +163,79 @@ void Combo()
 	}
 }
 
-void Harrass()
+void Harass()
 {
+	for (auto Enemy : GEntityList->GetAllHeros(false, true))
+	{
+		if (HarassQ->Enabled() && Q->IsReady() && Q->Range())
+		{
+			if (Enemy != nullptr)
+			{
+				Q->CastOnTarget(Enemy, kHitChanceHigh);
+			}
+		}
 
+		if (HarassE->Enabled() && E->IsReady() && Q->Range())
+		{
+			if (Enemy != nullptr && (Enemy->GetPosition() - GEntityList->Player()->GetPosition()).Length() < 600)
+			{
+				E->CastOnPlayer();
+			}
+		}
+	}
 }
 
 void AutoWInRange()
 {
 	for (auto Enemy : GEntityList->GetAllHeros(false, true))
 	{
-		if (AutoW->Enabled() && W->IsReady() && (Enemy->GetPosition() - GEntityList->Player()->GetPosition()).Length() < 150)
+		if (AutoW->Enabled() && W->IsReady() && (Enemy->GetPosition() - GEntityList->Player()->GetPosition()).Length() < 100)
 		{
 			W->CastOnPlayer();
 		}
 	}
+}
+
+PLUGIN_EVENT(void) OnInterruptible(InterruptibleSpell const& Args)
+
+{
+	if (AutoInt->Enabled() && (Args.Target->GetPosition() - GEntityList->Player()->GetPosition()).Length() < Q->Range() && Q->IsReady() && Args.Target->IsValidTarget())
+	{
+		Q->CastOnTarget(Args.Target);
+	}
+}
+
+PLUGIN_EVENT(void) OnGameUpdate()
+{
+	if (GEntityList->Player()->IsDead())
+		return;
+
+	AutoWInRange();
+
+	switch (GOrbwalking->GetOrbwalkingMode())
+	{
+	case kModeCombo:
+		Combo();
+		break;
+	case kModeMixed:
+		Harass();
+		break;
+	default:;
+	}
+}
+
+PLUGIN_API void OnLoad(IPluginSDK* PluginSDK)
+{
+	PluginSDKSetup(PluginSDK);
+	InitializeMenu();
+	LoadSpells();
+
+	GEventManager->AddEventHandler(kEventOnGameUpdate, OnGameUpdate);
+}
+
+PLUGIN_API void OnUnload()
+{
+	MainMenu->Remove();
+
+	GEventManager->RemoveEventHandler(kEventOnGameUpdate, OnGameUpdate);
 }
