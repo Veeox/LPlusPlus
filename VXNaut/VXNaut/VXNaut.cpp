@@ -87,12 +87,11 @@ void InitializeMenu()
 			if (Enemies != nullptr)
 			{
 				std::string name = "Auto Q: " + std::string(Enemies->ChampionName());
-				AutoQ[Enemies->GetNetworkId()] = AutoQSettings->CheckBox(name.c_str(), true);
+				AutoQ[Enemies->GetNetworkId()] = AutoQSettings->CheckBox(name.c_str(), false);
 			}
 		}
 		AutoW = MiscMenu->CheckBox("Auto W If Enemy In Range", false);
 		AutoInt = MiscMenu->CheckBox("Auto Q To Interrupt", false);
-		//auto Q?
 	}
 }
 
@@ -189,9 +188,27 @@ void AutoWInRange()
 {
 	for (auto Enemy : GEntityList->GetAllHeros(false, true))
 	{
-		if (AutoW->Enabled() && W->IsReady() && (Enemy->GetPosition() - GEntityList->Player()->GetPosition()).Length() < 100)
+		if (AutoW->Enabled() && W->IsReady() && (Enemy->GetPosition() - GEntityList->Player()->GetPosition()).Length() < 120)
 		{
 			W->CastOnPlayer();
+		}
+	}
+}
+
+void AutoHook()
+{
+	for (auto Enemy : GEntityList->GetAllHeros(false, true))
+	{
+		if (AutoQ[Enemy->GetNetworkId()]->Enabled())
+		{
+			auto target = GTargetSelector->FindTarget(QuickestKill, SpellDamage, Q->Range());
+			if (target != nullptr)
+			{
+				if (Q->IsReady())
+				{
+					Q->CastOnTarget(target);
+				}
+			}
 		}
 	}
 }
