@@ -23,7 +23,6 @@
     <ProjectGuid>{660880EA-C335-4C68-A6C3-D7DE69603040}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>VXNaut</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
