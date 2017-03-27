@@ -22,6 +22,9 @@ IMenuOption* HarassW;
 IMenuOption* HarassE;
 IMenuOption* HarassPercent;
 
+IMenu* LaneClearSettings;
+IMenuOption* LCS;
+
 IMenu* MiscMenu;
 IMenu* AutoQSettings;
 std::map<int, IMenuOption*> AutoQ;
@@ -69,14 +72,19 @@ void InitializeMenu()
 
 	UltSettings = MainMenu->AddMenu("Ultimate Settings");
 	{
-	for (auto Enemies : GEntityList->GetAllHeros(false, true))
-	{
-	if (Enemies != nullptr)
-	{
-		std::string name = "Ult: " + std::string(Enemies->ChampionName());
-		UseUltOn[Enemies->GetNetworkId()] = UltSettings->CheckBox(name.c_str(), true);
+		for (auto Enemies : GEntityList->GetAllHeros(false, true))
+			{
+				if (Enemies != nullptr)
+					{
+						std::string name = "Ult: " + std::string(Enemies->ChampionName());
+						UseUltOn[Enemies->GetNetworkId()] = UltSettings->CheckBox(name.c_str(), true);
+					}
+			}
 	}
-	}
+
+	LaneClearSettings = MainMenu->AddMenu("Lane Clear Settings");
+	{
+		LCS = ComboSettings->CheckBox("Use Spells for Lane Clear", true);
 	}
 
 	MiscMenu = MainMenu->AddMenu("Misc Settings");
@@ -188,13 +196,13 @@ void LaneClear()
 {
 	for (auto Minion : GEntityList->GetAllMinions(false, true, true))
 	{
-		if (Minion != nullptr && (Minion->GetPosition() - GEntityList->Player()->GetPosition()).Length() < Q->Range())
+		if (LCS->Enabled() && Minion != nullptr && Q->IsReady() && (Minion->GetPosition() - GEntityList->Player()->GetPosition()).Length() < Q->Range())
 		{
 			Q->CastOnTarget(Minion);
 
-			if (W->IsReady() && (Minion->GetPosition() - GEntityList->Player()->GetPosition()).Length() < 100)
+			if ((Minion->GetPosition() - GEntityList->Player()->GetPosition()).Length() < 100)
 			{
-				if (E->IsReady() && E->Range())
+				if (W->IsReady() && E->IsReady() && E->Range())
 				{
 					W->CastOnPlayer();
 					E->CastOnPlayer();
