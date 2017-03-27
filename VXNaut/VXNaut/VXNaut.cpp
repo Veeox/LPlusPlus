@@ -134,9 +134,15 @@ int GetEnemiesInRange(float range)
 
 void Combo()
 {
+	float Q_range = Q->Range();
+	float R_range = R->Range();
+
 	for (auto Enemy : GEntityList->GetAllHeros(false, true))
 	{
-		if (ComboQ->Enabled() && Q->IsReady() && Q->Range())
+		float enemyDistance = (Enemy->GetPosition() - GEntityList->Player()->GetPosition()).Length();
+
+
+		if (ComboQ->Enabled() && Q->IsReady() && enemyDistance <= Q_range)
 		{
 			if (Enemy != nullptr)
 			{
@@ -160,7 +166,7 @@ void Combo()
 			}
 		}
 
-		if (ComboR->Enabled() && R->IsReady() && R->Range())
+		if (ComboR->Enabled() && R->IsReady() && enemyDistance <= R_range)
 		{
 			if (UseUltOn[Enemy->GetNetworkId()]->Enabled() && Enemy != nullptr && !Enemy->IsDead() && !Enemy->IsInvulnerable())
 			{
@@ -174,7 +180,9 @@ void Harass()
 {
 	for (auto Enemy : GEntityList->GetAllHeros(false, true))
 	{
-		if (HarassQ->Enabled() && Q->IsReady() && Q->Range())
+		float enemyDistance = (Enemy->GetPosition() - GEntityList->Player()->GetPosition()).Length();
+
+		if (HarassQ->Enabled() && Q->IsReady() && enemyDistance <= Q->Range())
 		{
 			if (Enemy != nullptr)
 			{
@@ -182,7 +190,7 @@ void Harass()
 			}
 		}
 
-		if (HarassE->Enabled() && E->IsReady() && Q->Range())
+		if (HarassE->Enabled() && E->IsReady() && enemyDistance <= E->Range())
 		{
 			if (Enemy != nullptr && (Enemy->GetPosition() - GEntityList->Player()->GetPosition()).Length() < 600)
 			{
@@ -196,13 +204,15 @@ void LaneClear()
 {
 	for (auto Minion : GEntityList->GetAllMinions(false, true, true))
 	{
-		if (LCS->Enabled() && Minion != nullptr && Q->IsReady() && (Minion->GetPosition() - GEntityList->Player()->GetPosition()).Length() < Q->Range())
+		float minionRange = (Minion->GetPosition() - GEntityList->Player()->GetPosition()).Length();
+
+		if (LCS->Enabled() && Minion != nullptr && Q->IsReady() && minionRange < Q->Range())
 		{
 			Q->CastOnTarget(Minion);
 
-			if ((Minion->GetPosition() - GEntityList->Player()->GetPosition()).Length() < 100)
+			if (minionRange < 100)
 			{
-				if (W->IsReady() && E->IsReady() && E->Range())
+				if (W->IsReady() && E->IsReady() && minionRange <= E->Range())
 				{
 					W->CastOnPlayer();
 					E->CastOnPlayer();
