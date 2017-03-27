@@ -184,6 +184,26 @@ void Harass()
 	}
 }
 
+void LaneClear()
+{
+	for (auto Minion : GEntityList->GetAllMinions(false, true, true))
+	{
+		if (Minion != nullptr && (Minion->GetPosition() - GEntityList->Player()->GetPosition()).Length() < Q->Range())
+		{
+			Q->CastOnTarget(Minion);
+
+			if (W->IsReady() && (Minion->GetPosition() - GEntityList->Player()->GetPosition()).Length() < 100)
+			{
+				if (E->IsReady() && E->Range())
+				{
+					W->CastOnPlayer();
+					E->CastOnPlayer();
+				}
+			}
+		}
+	}
+}
+
 void AutoWInRange()
 {
 	for (auto Enemy : GEntityList->GetAllHeros(false, true))
@@ -241,6 +261,9 @@ PLUGIN_EVENT(void) OnGameUpdate()
 		break;
 	case kModeMixed:
 		Harass();
+		break;
+	case kModeLaneClear:
+		LaneClear();
 		break;
 	default:;
 	}
