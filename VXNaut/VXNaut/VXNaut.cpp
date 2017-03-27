@@ -84,7 +84,7 @@ void InitializeMenu()
 
 	LaneClearSettings = MainMenu->AddMenu("Lane Clear Settings");
 	{
-		LCS = ComboSettings->CheckBox("Use Spells for Lane Clear", true);
+		LCS = LaneClearSettings->CheckBox("Use Spells for Lane Clear", true);
 	}
 
 	MiscMenu = MainMenu->AddMenu("Misc Settings");
